@@ -238,28 +238,35 @@ class Client:
     def __init__(self, websocket):
         global games
         self.games = games
+        self.game = None
         self.websocket = websocket
         self.client_name = None
 
-    def __call__(self, method, *args, **kwargs):
-        return getattr(self, 'on_{}'.format(method))(*args, **kwargs)
+    async def __call__(self, method, *args, **kwargs):
+        await getattr(self, 'on_{}'.format(method))(*args, **kwargs)
 
-    def leave_game(self):
-        self.game.remove_player(self)
+    async def leave_game(self):
+        await self.game.remove_player(self)
         self.game = None
 
-    def on_start(self):
+    async def on_start(self):
         game_id = gen_name()
         self.game = Game(self)
         self.games[game_id] = self.game
+        await self.send(['game', game_id])
 
-    def on_join(self, game_id, client_name):
+    async def on_join(self, game_id, client_name):
+        game_id = game_id.strip().lower()
         game = self.games[game_id]
-        if client_name in game:
+        if client_name in game.players:
             raise KeyError('Name already used')
         self.game = game
         self.client_name = client_name
-        self.game.add_player(self)
+        await self.game.add_player(self)
+        await self.send(['joined'])
+
+    async def on_slap(self, damage):
+        await self.game.host.send(['slap', damage])
 
     async def recv(self):
         return json.loads(await self.websocket.recv())
@@ -278,9 +285,9 @@ async def slapme(websocket, path):
     client = Client(websocket)
     while True:
         try:
-            msg = await client.recv(websocket)
+            msg = await client.recv()
         except ConnectionClosed:
             break
-        client(*msg)
+        await client(*msg)
     if client.game:
         client.leave_game()
