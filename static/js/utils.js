@@ -15,7 +15,6 @@
 
     function Client() {
         SlapMe.autobind(this);
-        this.createSocket();
     }
     SlapMe.Client = Client;
 
@@ -26,8 +25,9 @@
         'error': 'socketError'
     };
 
-    Client.prototype.createSocket = function () {
-        this.socket = new WebSocket('ws://slapme.website/ws');
+    Client.prototype.createSocket = function (url) {
+        this.url = url;
+        this.socket = new WebSocket(url);
         for (var event in this.eventToMethod) {
             var eventHandler = this[this.eventToMethod[event]];
             if (eventHandler) {
@@ -47,7 +47,7 @@
     };
 
     Client.prototype.socketClose = function (ev) {
-        setTimeout(this.createSocket, 500);
+        setTimeout(this.createSocket.bind(null, this.url), 500);
     };
 
     Client.prototype.send = function (data) {

@@ -10,25 +10,37 @@
         this.blinking = false;
         this.render();
         this.blink();
+        this.notifications = []
+        this.createSocket('ws://slapme.website/ws');
+        this.clients = {};
     }
 
     Game.prototype = Object.create(SlapMe.Client.prototype);
     Game.prototype.constructor = Game;
 
-    Game.prototype.socketOpen = function (ev) {
-        this.send(['start']);
-    };
-
     Game.prototype.notify = function (msg) {
-        var status = SlapMe.$('#status');
-        var li = document.createElement('li');
-        li.appendChild(document.createTextNode(msg));
-        status.appendChild(li);
+        this.notifications.push(msg);
+        var notifications = this.notifications.map(function (msg) {
+            return ['li', {}, msg];
+        });
+        SlapMe.render(SlapMe.$('#status'), SlapMe.toDOM.apply(null, notifications));
     };
 
     Game.prototype.on_game = function (gameId) {
-        this.notify('To slap this stupid face, visit slapme.website/c on a ' +
-                    'mobile device and enter the phrase "' + gameId + '"');
+        this.url = this.url + '/' + gameId;
+        this.notify([
+            'To slap this stupid face, visit ', ['strong', {}, ['slapme.website/c']],
+            ' on a mobile device and enter the phrase ', ['strong', {}, [['code', {}, gameId]]],
+            '. Bring your friends!']);
+    };
+
+    Game.prototype.on_join = function (clientName) {
+        if (!(clientName in this.clients)) {
+            this.clients[clientName] = true;
+            this.notify([
+                ['strong', {}, clientName], ' joined the game!'
+            ]);
+        }
     };
 
     Game.prototype.on_slap = function (damage) {

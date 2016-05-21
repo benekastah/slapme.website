@@ -1,17 +1,7 @@
-#!/usr/bin/env python
+(function () {
+    'use strict';
 
-import asyncio
-import datetime
-import json
-import random
-import string
-from collections import defaultdict
-
-from websockets.exceptions import ConnectionClosed
-
-games = {}
-
-words = {
+var WORDS = [
     'abibliophobia',
     'absquatulate',
     'allegator',
@@ -205,46 +195,15 @@ words = {
     'wonky',
     'yahoo',
     'zeitgeist',
-}
+];
 
+SlapMe.getSillyName = function () {
+    var n = 2 + Math.floor(Math.random() * 2);
+    var result = [];
+    for (var i = 0; i < n; i++) {
+        result.push(WORDS[Math.floor(Math.random() * WORDS.length)]);
+    }
+    return result.join(' ');
+};
 
-def gen_client_name():
-    return ' '.join(
-        random.choice(tuple(words)) for _ in range(random.randint(2, 3)))
-
-
-def gen_game_id():
-    return ''.join(random.choice(string.ascii_lowercase) for _ in range(4))
-
-
-games = {}
-
-
-async def slapme(websocket, path):
-    path_parts = [p for p in path.split('/') if p][1:]
-    game_id = path_parts[0] if path_parts else None
-
-    global games
-    if game_id:
-        game_id = game_id.lower()
-        clients = games[game_id]
-        print('Non host connected', path)
-    else:
-        while True:
-            game_id = gen_game_id()
-            if game_id not in games:
-                break
-        clients = games[game_id] = set()
-        await websocket.send(json.dumps(['game', game_id]))
-        print('Host connected', path)
-
-    clients.add(websocket)
-    while True:
-        try:
-            msg = await websocket.recv()
-        except ConnectionClosed:
-            break
-        sends = [c.send(msg) for c in clients if c != websocket]
-        if sends:
-            await asyncio.wait(sends)
-    clients.remove(websocket)
+})();
