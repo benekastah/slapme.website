@@ -1,38 +1,26 @@
 (function () {
     'use strict';
 
-    var $ = document.querySelector.bind(document);
-    var $$ = document.querySelectorAll.bind(document);
-
     var IMG_PREFIX = '/imgs/slaps-';
     var SLAPS = ['frying-pan.wav', 'punch.wav', 'slap.wav'];
 
     function Game() {
+        SlapMe.Client.apply(this, arguments);
         this.damage = 0;
         this.blinking = false;
-        this.socket = new WebSocket('ws://slapme.website/ws');
-        this.socket.addEventListener('open', function () {
-            this.send(['start']);
-        }.bind(this));
-        this.socket.onmessage = function (ev) {
-            var data = JSON.parse(ev.data);
-            var method = 'on_' + data[0];
-            if (method in this) {
-                this[method].apply(this, data.slice(1));
-            } else {
-                console.error('No method ' + method);
-            }
-        }.bind(this);
         this.render();
         this.blink();
     }
 
-    Game.prototype.send = function (data) {
-        this.socket.send(JSON.stringify(data));
+    Game.prototype = Object.create(SlapMe.Client.prototype);
+    Game.prototype.constructor = Game;
+
+    Game.prototype.socketOpen = function (ev) {
+        this.send(['start']);
     };
 
     Game.prototype.notify = function (msg) {
-        var status = $('#status');
+        var status = SlapMe.$('#status');
         var li = document.createElement('li');
         li.appendChild(document.createTextNode(msg));
         status.appendChild(li);
@@ -71,14 +59,14 @@
                 break;
             }
         }
-        var face = $('#face');
+        var face = SlapMe.$('#face');
         face.setAttribute('class', '');
         face.classList.add('d' + a);
         if (this.blinking) {
             face.classList.add('blinking');
         }
         if (a >= 5) {
-            var h1 = $('h1');
+            var h1 = SlapMe.$('h1');
             h1.innerHTML = 'ded.';
         }
     };
