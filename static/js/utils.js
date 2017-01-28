@@ -42,7 +42,7 @@
         if (method in this) {
             this[method].apply(this, data.slice(1));
         } else {
-            throw new Error('No method ' + method);
+            console.warn('No method ' + method);
         }
     };
 

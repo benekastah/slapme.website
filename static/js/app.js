@@ -1,7 +1,7 @@
 (function () {
     'use strict';
 
-    var IMG_PREFIX = '/imgs/slaps-';
+    var LEVEL = location.pathname.slice(1);
     var SLAPS = ['frying-pan.wav', 'punch.wav', 'slap.wav'];
 
     function Game() {
@@ -31,7 +31,7 @@
         this.notify([
             'To slap this stupid face, visit ', ['strong', {}, ['slapme.website/c']],
             ' on a mobile device and enter the phrase ', ['strong', {}, [['code', {}, gameId]]],
-            '. Bring your friends!']);
+            '. ', ['strong', {}, 'Don\'t close this page! '], 'Good for 1+ players.']);
     };
 
     Game.prototype.on_join = function (clientName) {
@@ -72,7 +72,7 @@
             }
         }
         var face = SlapMe.$('#face');
-        face.setAttribute('class', '');
+        face.setAttribute('class', LEVEL);
         face.classList.add('d' + a);
         if (this.blinking) {
             face.classList.add('blinking');
@@ -84,6 +84,9 @@
     };
 
     document.addEventListener('DOMContentLoaded', function(event) {
+        if (LEVEL) {
+            SlapMe.$('#face').classList.add(LEVEL);
+        }
         var game = new Game();
     });
 })();
