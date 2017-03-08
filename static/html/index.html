@@ -3,21 +3,50 @@
     <head>
         <title>Slap this stupid face</title>
         <script>window.SlapMe = {};</script>
+        <script src="/js/dom.js" type="text/javascript"></script>
         <script src="/js/utils.js" type="text/javascript"></script>
         <script src="/js/app.js" type="text/javascript"></script>
 
+        <link type="text/css" rel="stylesheet" href="/css/normalize.css" />
+        <link type="text/css" rel="stylesheet" href="/css/styles.css" />
+
         <style type="text/css">
-            #status {
-                float: left;
-                width: 300px;
-                height: 100vh;
-            }
             #face {
                 background-repeat: no-repeat;
                 background-position: 50% 0%;
                 float: left;
                 width: 900px;
-                height: 900px;
+                height: 666px;
+            }
+
+            #notifications {
+                position: fixed;
+                bottom: 20px;
+                left: 20px;
+            }
+
+            #notifications > * {
+                margin-top: 10px;
+                opacity: 1;
+                transition: opacity 1s;
+            }
+
+            #notifications > *.dying {
+                opacity: 0;
+            }
+
+            #players {
+                list-style: none;
+                padding-left: 0;
+            }
+
+            #players:not(:empty)::before {
+                content: 'Players: ';
+            }
+
+            #players li {
+                display: inline-block;
+                margin-right: 10px;
             }
 
             #face.d1 { background-image: url('/imgs/slaps-1-1.jpg'); }
@@ -45,10 +74,12 @@
     </head>
 
     <body>
-        <h1>Slap Me</h1>
-        <div>
-            <div id="face"></div>
-            <ul id="status"><li>Loading...</li></ul>
-        </div>
+        <h1>Slap Me!</h1>
+
+        <div id="instructions">Loading...</div>
+        <ul id="players"></ul>
+
+        <div id="face"></div>
+        <div id="notifications"></div>
     </body>
 </html>

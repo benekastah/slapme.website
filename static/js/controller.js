@@ -17,10 +17,12 @@
         this.send(['join', this.name]);
         if (!this.joined) {
             this.joined = true;
-            this.notifications.push([
-                ['p', {}, ['Welcome, ', ['strong', {}, this.name], '!']],
-                ['p', {}, ['To slap that face, swing your phone around in the air. ',
-                           'The harder you slap, the more damage you do!']]]);
+            this.notifications.push(function () {
+                return $.fragment(
+                    $.p('Welcome ', $.strong(this.name), '!'),
+                    $.p('To slap that face, swing your phone around in the air. ',
+                        'The harder you slap, the more damage you do!'));
+            }.bind(this));
             this.render();
             if (window.DeviceMotionEvent) {
                 window.addEventListener('devicemotion', function () {
@@ -42,42 +44,49 @@
         document.body.innerHTML = 'ERROR!';
     };
 
+    Controller.prototype.on_game = function (gameId) {
+        this.notifications = [function () {
+            return $.big('This game doesn\'t exist! Please check the URL again.');
+        }];
+        this.joined = false;
+        this.render();
+    };
+
     Controller.prototype.slap = function (impact) {
         var thisDamage = Math.max.apply(Math, impact) / 50;
         if (thisDamage < 1 || Date.now() - this.slappedAt < 500) {
             return;
         }
-        this.send(['slap', thisDamage]);
+        this.points += Math.round(thisDamage * 100);
+        this.send(['slap', this.name, thisDamage, this.points]);
         this.slappedAt = Date.now();
-        this.points += thisDamage;
         this.render();
     };
 
-    Controller.prototype.join = function (ev) {
-        ev.preventDefault();
-        this.createSocket('ws://slapme.website/ws/' + ev.target.elements.gameId.value);
+    Controller.prototype.join = function () {
+        var gameId = location.pathname.split('/')[2];
+        if (!gameId) {
+            this.notifications.push(function () {
+                return $.big('Incorrect URL. Please ensure you entered it correctly!');
+            });
+            this.render();
+            return;
+        }
+        this.createSocket('ws://slapme.website/ws/' + gameId);
     };
 
     Controller.prototype.render = function () {
-        var fragment;
-        if (!this.joined) {
-            fragment = SlapMe.toDOM(['form', {onsubmit: this.join}, [
-                ['p', {}, [['label', {}, [
-                    ['input', {type: 'text', name: 'gameId', autofocus: true}]]]]],
-                ['button', {type: 'submit'}, 'OK']
-            ]]);
-        } else {
-            fragment = SlapMe.toDOM(
-                ['p', {}, ['' + Math.round(this.points * 100), ' points']],
-                ['ul', {}, this.notifications.map(function (note) {
-                    return ['li', {}, note];
-                })]);
-        }
-        SlapMe.render(document.body, fragment);
+        $.render(document.body, $.fragment(
+            this.joined ? $.big('+' + this.points) : '',
+            $.ul.apply($, this.notifications.map(function (render) {
+                return $.li(render());
+            }))
+        ));
     };
 
     document.addEventListener('DOMContentLoaded', function(event) {
         var controller = new Controller();
+        controller.join();
         controller.render();
     });
 })();

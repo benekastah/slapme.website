@@ -8,7 +8,7 @@ from collections import defaultdict
 
 from websockets.exceptions import ConnectionClosed
 
-games = defaultdict(lambda: set())
+games = defaultdict(set)
 
 
 def gen_game_id():
@@ -24,8 +24,9 @@ async def slapme(websocket, path):
     global games
     path_parts = [p for p in path.split('/') if p][1:]
     game_id = path_parts[0].lower() if path_parts else gen_game_id()
+    if game_id not in games:
+        await websocket.send(json.dumps(['game', game_id]))
     clients = games[game_id]
-    await websocket.send(json.dumps(['game', game_id]))
 
     clients.add(websocket)
     while True:

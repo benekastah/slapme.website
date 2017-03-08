@@ -1,0 +1,24 @@
+* {
+    font-family: Geneva,Tahoma,Verdana,sans-serif;
+}
+
+body {
+    margin: 20px;
+}
+
+h1,h2,h3,h4,h5,h6 {
+    font-family: Georgia,Times,Times New Roman,serif;
+}
+
+big {
+    font-size: 2em;
+    color: blue;
+}
+
+.bubble {
+    padding: 10px;
+    border: 1px solid #44f;
+    background-color: #ddf;
+    color: #600;
+    border-radius: 5px;
+}
